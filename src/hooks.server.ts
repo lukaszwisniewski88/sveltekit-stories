@@ -27,15 +27,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.auth = auth.handleRequest(event);
 	if (event.locals?.auth) {
-		const { user } = await event.locals.auth.validateUser();
-		event.locals.user = user;
+		const session = await event.locals.auth.validate();
+		event.locals.user = session?.user;
+
 		if (event.route.id?.startsWith('/(protected)')) {
-			if (!user) throw redirect(302, '/auth/sign-in');
-			if (!user.verified) throw redirect(302, '/auth/verify/email');
+			if (!event.locals.user) throw redirect(302, '/auth/sign-in');
+			if (!event.locals.user.verified) throw redirect(302, '/auth/verify/email');
 		}
 	}
 
 	const response = await resolve(event);
-	log(response.status, event);
 	return response;
 };

@@ -1,4 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
 import { setError, superValidate } from 'sveltekit-superforms/server';
 import { auth } from '$lib/server/lucia';
 import { userSchema } from '$lib/config/zod-schemas';
@@ -12,33 +13,29 @@ const signUpSchema = userSchema.pick({
 	terms: true
 });
 
-export const load = async (event) => {
+export const load: PageServerLoad = async (event) => {
 	const session = await event.locals.auth.validate();
 	if (session) throw redirect(302, '/dashboard');
 	const form = await superValidate(event, signUpSchema);
-	return {
-		form
-	};
+	return { form };
 };
 
 export const actions = {
 	default: async (event) => {
 		const form = await superValidate(event, signUpSchema);
-		//console.log(form);
+		// console.log(form);
 
 		if (!form.valid) {
-			return fail(400, {
-				form
-			});
+			return fail(400, { form });
 		}
 
-		//add user to db
+		// add user to db
 		try {
 			console.log('creating user');
 			const token = crypto.randomUUID();
 
 			const user = await auth.createUser({
-				primaryKey: {
+				key: {
 					providerId: 'emailpassword',
 					providerUserId: form.data.email,
 					password: form.data.password
@@ -55,15 +52,16 @@ export const actions = {
 			});
 
 			await sendVerificationEmail(form.data.email, token);
-			const session = await auth.createSession(user.userId);
+			const session = await auth.createSession(user);
 			event.locals.auth.setSession(session);
 		} catch (e) {
 			console.error(e);
 			// email already in use
-			//might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
+			// might be other type of error but this is most common and this is how
+			// lucia docs sets the error to duplicate user
 			return setError(form, 'email', 'A user with that email already exists.');
 		}
 
 		return { form };
 	}
-};
+} satisfies Actions;

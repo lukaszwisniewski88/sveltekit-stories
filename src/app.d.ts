@@ -2,7 +2,7 @@
 declare global {
 	namespace App {
 		interface Locals {
-			auth: import('lucia-auth').AuthRequest;
+			auth: import('lucia').AuthRequest;
 			user: Lucia.UserAttributes;
 			startTimer: number;
 			error: string;
@@ -18,11 +18,11 @@ declare global {
 	}
 }
 
-/// <reference types="lucia-auth" />
+/// <reference types="lucia" />
 declare global {
 	namespace Lucia {
 		type Auth = import('$lib/lucia').Auth;
-		type UserAttributes = {
+		type DatabaseUserAttributes = {
 			email: string;
 			firstName: string;
 			lastName: string;
@@ -31,6 +31,7 @@ declare global {
 			receiveEmail: boolean;
 			token: string;
 		};
+		type DatabaseSessionAttributes = {};
 	}
 }
 

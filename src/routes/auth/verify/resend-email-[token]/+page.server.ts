@@ -1,7 +1,8 @@
 import prisma from '$lib/config/prisma';
 import { fail } from '@sveltejs/kit';
 import { sendVerificationEmail } from '$lib/config/email-messages';
-export async function load({ params }) {
+import type { PageServerLoad } from './$types';
+export const load: PageServerLoad = async ({ params }) => {
 	try {
 		const token = params.token as string;
 
@@ -40,4 +41,4 @@ export async function load({ params }) {
 			error: e
 		});
 	}
-}
+};

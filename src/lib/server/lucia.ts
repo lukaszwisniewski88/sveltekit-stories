@@ -1,17 +1,16 @@
 // lib/server/lucia.ts
-import lucia from 'lucia-auth';
-import { sveltekit } from 'lucia-auth/middleware';
-import prisma from '@lucia-auth/adapter-prisma';
-import { PrismaClient } from '@prisma/client';
 import { dev } from '$app/environment';
+import prismaClient from '$lib/config/prisma';
+import { prisma } from '@lucia-auth/adapter-prisma';
+import { lucia } from 'lucia';
+import { sveltekit } from 'lucia/middleware';
 
 export const auth = lucia({
-	adapter: prisma(new PrismaClient()),
+	adapter: prisma(prismaClient, { user: 'authUser', key: 'authKey', session: 'authSession' }),
 	env: dev ? 'DEV' : 'PROD',
 	middleware: sveltekit(),
-	transformDatabaseUser: (userData) => {
+	getUserAttributes: (userData) => {
 		return {
-			userId: userData.id,
 			email: userData.email,
 			firstName: userData.firstName,
 			lastName: userData.lastName,
